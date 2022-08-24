@@ -1,18 +1,36 @@
 import Layout from "../components/Layout";
 import {useRouter} from "next/router";
+import axios from 'axios';
+import {useEffect, useState} from "react";
+import constants from "../constants"
 
 export default function Home() {
   const router = useRouter();
   const {code} = router.query;
+  const [user, setUser] = useState(null);
+  const [products, setProducts] = useState([]);
 
-  console.log(code);
+
+
+  useEffect( () =>  {
+    if (code!= undefined) {
+      (
+          async () => {
+            const {data} = await axios.get(`${constants.endpoint}/links/${code}`);
+            setUser(data.user)
+            console.log(data)
+            setProducts(data.products)
+          }
+      )()
+    }
+  }, [])
 
   return (
       <Layout>
         <main>
           <div className="py-5 text-center">
             <h2>Welcome</h2>
-            <p className="lead">Has invited you to buy these products!</p>
+            <p className="lead">{user?.first_name} {user?.last_name} invited you to buy these products!</p>
           </div>
 
           <div className="row g-5">
@@ -24,13 +42,27 @@ export default function Home() {
               </h4>
 
               <ul className="list-group mb-3">
-                <li className="list-group-item d-flex justify-content-between lh-sm">
-                  <div>
-                    <h6 className="my-0">Product name</h6>
-                    <small className="text-muted">Brief description</small>
-                  </div>
-                  <span className="text-muted">$12</span>
-                </li>
+                {products.map(product => {
+                  return  (
+                    <div key={product.id}>
+                      <li className="list-group-item d-flex justify-content-between lh-sm">
+                        <div>
+                          <h6 className="my-0">{product.title}</h6>
+                          <small className="text-muted">{product.description}</small>
+                        </div>
+                        <span className="text-muted">${product.price}</span>
+                      </li>
+                      <li className="list-group-item d-flex justify-content-between lh-sm">
+                        <div>
+                          <h6 className="my-0">Quantity</h6>
+                        </div>
+                        <input type="number" min="0" className="text-muted form-control" style={{width:'65px'}}/>
+                      </li>
+                    </div>
+                  )
+
+                })}
+
                 <li className="list-group-item d-flex justify-content-between">
                   <span>Total (USD)</span>
                   <strong>$20</strong>
@@ -45,7 +77,7 @@ export default function Home() {
 
                   <div className="col-sm-6">
                     <label htmlFor="firstName" className="form-label">First name</label>
-                    <input type="text" className="form-control" id="firstName" placeholder="First Name" value=""
+                    <input type="text" className="form-control" id="firstName" placeholder="First Name"
                            required/>
                     <div className="invalid-feedback">
                       Valid first name is required.
@@ -54,7 +86,7 @@ export default function Home() {
 
                   <div className="col-sm-6">
                     <label htmlFor="lastName" className="form-label">Last name</label>
-                    <input type="text" className="form-control" id="lastName" placeholder="Last Name" value=""
+                    <input type="text" className="form-control" id="lastName" placeholder="Last Name"
                            required/>
                   </div>
 
