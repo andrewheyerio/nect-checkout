@@ -4,6 +4,8 @@ import axios from 'axios';
 import {SyntheticEvent, useEffect, useState} from "react";
 import constants from "../constants"
 
+declare var Stripe;
+
 export default function Home() {
     const router = useRouter();
     const {code} = router.query;
@@ -87,6 +89,11 @@ export default function Home() {
         });
         console.log("fd")
         console.log(data)
+        const stripe = new Stripe(constants.stripe_key)
+
+        stripe.redirectToCheckout({
+            sessionId: data.id,
+        })
     }
 
     return (
