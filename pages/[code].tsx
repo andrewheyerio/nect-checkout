@@ -9,6 +9,7 @@ export default function Home() {
   const {code} = router.query;
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
+  const [quantities, setQuantities] = useState([]);
 
 
 
@@ -20,10 +21,44 @@ export default function Home() {
             setUser(data.user)
             console.log(data)
             setProducts(data.products)
+            // Here we initialize an object based on the products we get from the API. From the API, we are storing
+            // the product and quantity
+            setQuantities(data.products.map(p => ({
+                product_id: p.id,
+                quantity: 0,
+            })));
           }
       )()
     }
-  }, [])
+  }, [code])
+
+  const updateTotal = (id: number, quantity: number) => {
+
+    // Great example of how awesome the map function is. We call this function whenever changing the quantities in out
+    // form. Because the form is created using the id, and becuase we know quantities solely based off that id, we can
+    // map through until we find the matching id and modify the quantity. Not very intuitive I think, but clean. Java/
+    // Python program tells me the way I should be doing it is by using find. Even with arrays we need to do shallow
+    // clones.
+    setQuantities(quantities.map(q => {
+      if (q.product_id === id) {
+          return {
+            ...q,
+            quantity
+        }
+      }
+      return q;
+    }))
+  }
+
+  // This function will calculate the total, updating accordingly when necessary.
+  const total = () => {
+    return quantities.reduce((s, q) => {
+      const product = products.find(p => p.id === q.product_id);
+
+      return s + product.price * q.quantity;
+    }, 0)
+
+  }
 
   return (
       <Layout>
@@ -56,7 +91,8 @@ export default function Home() {
                         <div>
                           <h6 className="my-0">Quantity</h6>
                         </div>
-                        <input type="number" min="0" className="text-muted form-control" style={{width:'65px'}}/>
+                        <input type="number" min="0" className="text-muted form-control" style={{width:'65px'}}
+                               onChange={e => updateTotal(product.id, parseInt(e.target.value))}/>
                       </li>
                     </div>
                   )
@@ -65,7 +101,7 @@ export default function Home() {
 
                 <li className="list-group-item d-flex justify-content-between">
                   <span>Total (USD)</span>
-                  <strong>$20</strong>
+                  <strong>${total()}</strong>
                 </li>
               </ul>
             </div>
